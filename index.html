@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Comparativo Canais - Fibra Play</title>
+  <title>Grade de Canais - Seja Fibra</title>
 
-  <!-- Bootstrap e ícones (mantém o estilo do arquivo enviado) -->
+  <!-- Bootstrap e ícones -->
+  <link rel="shortcut icon" href="https://raw.githubusercontent.com/sejafibra/agenda/refs/heads/main/faviconsf.ico" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-  <!-- html2pdf para exportar A4 -->
+  <!-- html2pdf -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Firebase compat (v9 compat libs) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -29,16 +30,20 @@
     .card { border-radius:10px; box-shadow:0 4px 8px rgba(0,0,0,.06); }
     .nav-pills .nav-link.active { background: linear-gradient(90deg,var(--brand-blue), #0062cc); color:#fff; }
     .table thead th { background: linear-gradient(90deg, #e9f2ff, #fff); }
-    .manutencao { background: #fff7c2 !important; } /* amarelo suave */
-    .badge-plan { font-size:0.75rem; padding:0.35rem; border-radius:6px; }
+    .manutencao { background: #fff7c2 !important; }
     .small-muted { color:var(--muted); font-size:0.9rem; }
-    /* Estilo para A4 export */
-    .a4page { width:210mm; min-height:297mm; padding:20mm; box-sizing:border-box; background:#fff; }
-    .a4-title { font-size:18px; font-weight:600; margin-bottom:8px; }
-    .channel-row { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #eee; }
-    @media (max-width:900px){
-      .a4page { width: auto; min-height: auto; padding:1rem; }
+
+    /* A4 fixo em pixels (96dpi -> 794x1122px) */
+    .a4page {
+      width: 794px;
+      height: 1122px;
+      padding: 40px;
+      box-sizing: border-box;
+      background: #fff;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
+    .a4-title { font-size:18px; font-weight:600; margin-bottom:6px; }
   </style>
 </head>
 <body>
@@ -48,7 +53,7 @@
         <img src="https://sejafibra.net/wp-content/uploads/2023/06/logonovofibra.png" class="logo me-3" alt="logo">
         <div>
           <h4 style="margin:0">Painel Canais - Fibra Play</h4>
-          <div class="small-muted">Comparativo de planos • marcação de manutenção controlada</div>
+          <div class="small-muted">Controle interno • Não compartilhar essa página</div>
         </div>
         <div class="ms-auto">
           <button id="logoutBtn" class="btn btn-outline-danger btn-sm" style="display:none"><i class="bi bi-box-arrow-right"></i> Sair</button>
@@ -73,50 +78,39 @@
               </div>
               <button class="btn btn-primary w-100" type="submit">Entrar</button>
             </form>
-            <div class="small-muted text-center mt-2">Somente para operadores autorizados marcar manutenção</div>
+            <div class="small-muted text-center mt-2">Somente usuários autorizados podem marcar manutenção</div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main content -->
+    <!-- Conteúdo -->
     <div id="app" style="display:none;">
       <div class="row justify-content-center">
         <div class="col-md-10">
           <ul class="nav nav-pills mb-3" id="tabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="comparativo-tab" data-bs-toggle="pill" data-bs-target="#comparativo" type="button" role="tab">Comparativo</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="fibraplay-tab" data-bs-toggle="pill" data-bs-target="#fibraplay" type="button" role="tab">Fibra Play</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="basico-tab" data-bs-toggle="pill" data-bs-target="#basico" type="button" role="tab">Fibra Play Básico</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="premium-tab" data-bs-toggle="pill" data-bs-target="#premium" type="button" role="tab">Fibra Play Premium</button>
-            </li>
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#comparativo">Comparativo</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fibraplay">Fibra Play</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#basico">Fibra Play Básico</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#premium">Fibra Play Premium</button></li>
           </ul>
 
           <div class="tab-content">
             <!-- Comparativo -->
             <div class="tab-pane fade show active" id="comparativo">
               <div class="card">
-                <div class="card-header d-flex align-items-center">
-                  <h5 class="mb-0">Comparativo de Canais</h5>
-                  <div class="ms-auto small-muted">Nº / Nome / Planos</div>
-                </div>
+                <div class="card-header"><h5 class="mb-0">Comparativo de Canais</h5></div>
                 <div class="card-body">
                   <div class="table-responsive">
                     <table class="table table-hover" id="comparativoTable">
                       <thead>
                         <tr>
-                          <th style="width:70px">Nº</th>
+                          <th>Nº</th>
                           <th>Nome</th>
-                          <th style="width:120px">Fibra Play</th>
-                          <th style="width:160px">Fibra Play Básico</th>
-                          <th style="width:160px">Fibra Play Premium</th>
-                          <th style="width:150px">Manutenção</th>
+                          <th>Fibra Play</th>
+                          <th>Fibra Play Básico</th>
+                          <th>Fibra Play Premium</th>
+                          <th>Manutenção</th>
                         </tr>
                       </thead>
                       <tbody id="comparativoBody"></tbody>
@@ -131,62 +125,46 @@
               <div class="card">
                 <div class="card-header d-flex align-items-center">
                   <h5 class="mb-0">Fibra Play</h5>
-                  <div class="ms-auto">
-                    <button id="exportFibraPlay" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button>
-                  </div>
+                  <div class="ms-auto"><button id="exportFibraPlay" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button></div>
                 </div>
-                <div class="card-body">
-                  <div id="fibraPlayList" class="list-group"></div>
-                </div>
+                <div class="card-body"><div id="fibraPlayList" class="list-group"></div></div>
               </div>
             </div>
 
-            <!-- Fibra Play Básico -->
+            <!-- Básico -->
             <div class="tab-pane fade" id="basico">
               <div class="card">
                 <div class="card-header d-flex align-items-center">
                   <h5 class="mb-0">Fibra Play Básico</h5>
-                  <div class="ms-auto">
-                    <button id="exportBasico" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button>
-                  </div>
+                  <div class="ms-auto"><button id="exportBasico" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button></div>
                 </div>
-                <div class="card-body">
-                  <div id="basicoList" class="list-group"></div>
-                </div>
+                <div class="card-body"><div id="basicoList" class="list-group"></div></div>
               </div>
             </div>
 
-            <!-- Fibra Play Premium -->
+            <!-- Premium -->
             <div class="tab-pane fade" id="premium">
               <div class="card">
                 <div class="card-header d-flex align-items-center">
                   <h5 class="mb-0">Fibra Play Premium</h5>
-                  <div class="ms-auto">
-                    <button id="exportPremium" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button>
-                  </div>
+                  <div class="ms-auto"><button id="exportPremium" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button></div>
                 </div>
-                <div class="card-body">
-                  <div id="premiumList" class="list-group"></div>
-                </div>
+                <div class="card-body"><div id="premiumList" class="list-group"></div></div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </div>
 
     <div class="row mt-3 mb-5">
-      <div class="col-md-10 text-center small-muted">
-        <small>Desenvolvido para uso interno • Dados do Realtime Database: canais</small>
-      </div>
+      <div class="col-md-10 text-center small-muted"><small>No caso de inconsistências, informe no grupo Headend</small></div>
     </div>
   </div>
 
-<!-- Scripts -->
 <script>
 /* =========================
-   CONFIGURAÇÃO FIREBASE
+   CONFIG FIREBASE
    ========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyDS9VJ9BnL1s77x33hy9dMG3k0HNBSj_1g",
@@ -194,26 +172,17 @@ const firebaseConfig = {
   projectId: "canais-35cb2",
   storageBucket: "canais-35cb2.firebasestorage.app",
   messagingSenderId: "1009365394727",
-  appId: "1:1009365394727:web:024a579975bd5a6b443502"
+  appId: "1:1009365394727:web:024a579975bd5a6b443502",
+  databaseURL: "https://canais-35cb2-default-rtdb.firebaseio.com/"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const auth = firebase.auth();
 
-/* =========================
-   VARIÁVEIS & AUTORIZAÇÃO
-   ========================= */
-const autorizados = [
-  "bioranss@gmail.com",
-  "claudir@sejafibra.net",
-  "eduardo@sejafibra.net",
-  "junior@sejafibra.net"
-];
-
-let canaisData = {}; // cache local
+const autorizados = ["bioranss@gmail.com","claudir@sejafibra.net","eduardo@sejafibra.net","junior@sejafibra.net"];
+let canaisData = {};
 let currentUserEmail = null;
 
-/* ELEMENTOS */
 const loginCard = document.getElementById('loginCard');
 const loginForm = document.getElementById('loginForm');
 const app = document.getElementById('app');
@@ -223,241 +192,192 @@ const basicoList = document.getElementById('basicoList');
 const premiumList = document.getElementById('premiumList');
 const logoutBtn = document.getElementById('logoutBtn');
 
-/* =========================
-   UTILITÁRIOS
-   ========================= */
 function safeBool(v){ return v===true || v==='true' || v===1 || v==='1'; }
-function iconFor(flag){ return safeBool(flag) ? '✔' : 'X'; }
 function formatNum(n){ return n===undefined || n===null ? '' : String(n); }
 
 /* =========================
-   RENDERIZAÇÕES
+   RENDER COM PLANOS EDITÁVEIS
    ========================= */
 function renderComparativo(){
   comparativoBody.innerHTML = '';
-  // transform to array and sort by numero (if numeric)
-  const arr = Object.entries(canaisData).map(([id, c])=>{
-    c._id = id;
-    return c;
-  }).sort((a,b)=>{
-    const na = parseInt(a.numero) || 0;
-    const nb = parseInt(b.numero) || 0;
-    return na-nb;
-  });
+  const arr = Object.entries(canaisData)
+    .map(([id,c])=>({...c,_id:id}))
+    .sort((a,b)=>(parseInt(a.numero)||0)-(parseInt(b.numero)||0));
 
   arr.forEach(c=>{
     const tr = document.createElement('tr');
-    if (safeBool(c.manutencao)) tr.classList.add('manutencao');
+    if(safeBool(c.manutencao)) tr.classList.add('manutencao');
 
-    const nr = formatNum(c.numero);
-    const nome = c.nome || '-';
-    const fp = iconFor(c.fibraPlay);
-    const fpb = iconFor(c.fibraPlayBasico);
-    const fpp = iconFor(c.fibraPlayPremium);
-
-    // manutenção button (apenas para autorizados)
-    const manutCell = document.createElement('td');
-    const manutStatus = document.createElement('span');
-    manutStatus.textContent = safeBool(c.manutencao) ? 'Em manutenção' : 'OK';
-    manutStatus.className = safeBool(c.manutencao) ? 'badge bg-warning text-dark' : 'badge bg-success';
-
-    manutCell.appendChild(manutStatus);
-    manutCell.appendChild(document.createTextNode(' '));
-
-    // botão de alternar manutenção (visível apenas para autorizados)
-    const btn = document.createElement('button');
-    btn.className = 'btn btn-sm btn-outline-secondary ms-2';
-    btn.innerHTML = '<i class="bi bi-tools"></i> Marcar';
-    btn.onclick = ()=>toggleManutencao(c._id);
-    btn.title = 'Marcar/Desmarcar manutenção';
-    // botão só aparece para autorizados; lógica aplicada depois
-
-    // montar linha
     tr.innerHTML = `
-      <td style="vertical-align:middle">${nr}</td>
-      <td style="vertical-align:middle"><strong>${nome}</strong></td>
-      <td style="vertical-align:middle">${fp}</td>
-      <td style="vertical-align:middle">${fpb}</td>
-      <td style="vertical-align:middle">${fpp}</td>
-    `;
+      <td>${formatNum(c.numero)}</td>
+      <td><strong>${c.nome||''}</strong></td>`;
 
-    // append manut cell and maybe button
+    ["fibraPlay","fibraPlayBasico","fibraPlayPremium"].forEach(plan=>{
+      const td = document.createElement('td');
+      const val = safeBool(c[plan]);
+      const span = document.createElement('span');
+      span.textContent = val ? "✔" : "X";
+      span.style.color = val ? "green" : "red";
+      span.style.fontWeight = "bold";
+
+      if(currentUserEmail && autorizados.includes(currentUserEmail.toLowerCase())){
+        span.style.cursor = "pointer";
+        span.title = "Clique para alternar";
+        span.onclick = ()=> togglePlan(c._id, plan, !val);
+      }
+
+      td.appendChild(span);
+      tr.appendChild(td);
+    });
+
     const manutTd = document.createElement('td');
-    manutTd.style.verticalAlign = 'middle';
-    manutTd.appendChild(manutStatus);
-    if (currentUserEmail && autorizados.includes(currentUserEmail.toLowerCase())){
+    const badge = document.createElement('span');
+    badge.textContent = safeBool(c.manutencao) ? 'Em manutenção' : 'OK';
+    badge.className = safeBool(c.manutencao) ? 'badge bg-warning text-dark' : 'badge bg-success';
+    manutTd.appendChild(badge);
+
+    if(currentUserEmail && autorizados.includes(currentUserEmail.toLowerCase())){
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-sm btn-outline-secondary ms-2';
+      btn.innerHTML = '<i class="bi bi-tools"></i>';
+      btn.onclick = ()=>toggleManutencao(c._id);
       manutTd.appendChild(btn);
     }
+
     tr.appendChild(manutTd);
     comparativoBody.appendChild(tr);
   });
 }
 
+/* =========================
+   TOGGLE PLAN
+   ========================= */
+function togglePlan(id, plan, newValue){
+  if(!currentUserEmail) return alert("Faça login");
+  if(!autorizados.includes(currentUserEmail.toLowerCase())) return alert("Não autorizado");
+  db.ref('canais/'+id).update({ [plan]: newValue });
+}
+
+/* =========================
+   LISTAS
+   ========================= */
 function renderPlanLists(){
-  fibraPlayList.innerHTML = '';
-  basicoList.innerHTML = '';
-  premiumList.innerHTML = '';
-
-  const arr = Object.entries(canaisData).map(([id,c])=>({id, ...c}));
-  // sort
-  arr.sort((a,b)=> (parseInt(a.numero)||0) - (parseInt(b.numero)||0) );
-
+  fibraPlayList.innerHTML = basicoList.innerHTML = premiumList.innerHTML = '';
+  const arr = Object.entries(canaisData).map(([id,c])=>({...c})).sort((a,b)=>(parseInt(a.numero)||0)-(parseInt(b.numero)||0));
   arr.forEach(c=>{
     const line = document.createElement('div');
     line.className = 'list-group-item d-flex justify-content-between align-items-center';
-    if (safeBool(c.manutencao)) line.classList.add('manutencao');
-
-    const left = document.createElement('div');
-    left.innerHTML = `<strong>${c.numero || ''}</strong> - ${c.nome || ''}`;
-    const right = document.createElement('div');
-    right.style.minWidth = '120px';
-    right.className = 'text-end small-muted';
-
-    // badges of plans
-    if (safeBool(c.fibraPlay)) right.innerHTML += `<span class="badge bg-primary badge-plan me-1">Fibra Play</span>`;
-    if (safeBool(c.fibraPlayBasico)) right.innerHTML += `<span class="badge bg-info badge-plan me-1">Básico</span>`;
-    if (safeBool(c.fibraPlayPremium)) right.innerHTML += `<span class="badge bg-warning text-dark badge-plan me-1">Premium</span>`;
-
-    // append
-    line.appendChild(left);
-    line.appendChild(right);
-
-    if (safeBool(c.fibraPlay)) fibraPlayList.appendChild(line);
-    if (safeBool(c.fibraPlayBasico)) basicoList.appendChild(line.cloneNode(true));
-    if (safeBool(c.fibraPlayPremium)) premiumList.appendChild(line.cloneNode(true));
+    if(safeBool(c.manutencao)) line.classList.add('manutencao');
+    line.innerHTML = `<div style="width:100%"><strong>${c.numero||''}</strong> - ${c.nome||''}</div>`;
+    if(safeBool(c.fibraPlay)) fibraPlayList.appendChild(line.cloneNode(true));
+    if(safeBool(c.fibraPlayBasico)) basicoList.appendChild(line.cloneNode(true));
+    if(safeBool(c.fibraPlayPremium)) premiumList.appendChild(line.cloneNode(true));
   });
 }
 
 /* =========================
-   MANUTENÇÃO (toggle)
+   MANUTENÇÃO
    ========================= */
 function toggleManutencao(id){
-  if (!currentUserEmail) return alert('Faça login para realizar esta ação.');
-  if (!autorizados.includes(currentUserEmail.toLowerCase())) return alert('Usuário não autorizado a marcar manutenção.');
-
-  const ref = db.ref('canais/'+id);
+  if(!currentUserEmail) return alert("Faça login");
+  if(!autorizados.includes(currentUserEmail.toLowerCase())) return alert("Não autorizado");
   const atual = canaisData[id] || {};
-  const novo = !safeBool(atual.manutencao);
-  ref.update({
-    manutencao: novo,
-    manutencaoBy: novo ? currentUserEmail : ''
-  }).then(()=> {
-    // sucesso (o listener do db atualiza a interface)
-  }).catch(err=> alert('Erro ao atualizar: '+err.message));
+  db.ref('canais/'+id).update({manutencao:!safeBool(atual.manutencao), manutencaoBy:!safeBool(atual.manutencao)?currentUserEmail:""});
 }
 
 /* =========================
-   EXPORTAR PARA PDF (A4)
+   EXPORT PDF
    ========================= */
 function exportPlanToPDF(planName, containerElement){
-  // create a printable A4 element
   const page = document.createElement('div');
   page.className = 'a4page';
 
+  const logo = document.createElement('img');
+  logo.src = "https://sejafibra.net/wp-content/uploads/2023/06/logonovofibra.png";
+  logo.style.height = "40px";
+  logo.style.display = "block";
+  logo.style.margin = "0 auto 10px auto";
+  page.appendChild(logo);
+
   const title = document.createElement('div');
   title.className = 'a4-title';
+  title.style.textAlign = "center";
   title.textContent = `${planName} — Lista de Canais`;
   page.appendChild(title);
 
   const dateLine = document.createElement('div');
   dateLine.className = 'small-muted';
+  dateLine.style.textAlign = "center";
   dateLine.textContent = 'Gerado em: ' + new Date().toLocaleString('pt-BR');
   page.appendChild(dateLine);
 
   page.appendChild(document.createElement('hr'));
 
-  // gather items from corresponding list in DOM
-  const items = Array.from(containerElement.querySelectorAll('.list-group-item')).map(node=>{
-    return node.innerText.trim();
+  const colContainer = document.createElement('div');
+  colContainer.style.width = "680px";
+  colContainer.style.margin = "0 auto";
+  colContainer.style.columnCount = 4;
+  colContainer.style.columnGap = "20px";
+  colContainer.style.fontSize = "10px";
+  colContainer.style.lineHeight = "1.2";
+  colContainer.style.textAlign = "left";
+
+  const items = Array.from(containerElement.querySelectorAll('.list-group-item')).map(n => n.innerText.trim());
+  items.forEach(txt=>{
+    const div = document.createElement('div');
+    div.textContent = txt;
+    div.style.breakInside = "avoid";
+    div.style.marginBottom = "2px";
+    colContainer.appendChild(div);
   });
 
-  if (items.length === 0){
-    const p = document.createElement('div');
-    p.textContent = 'Nenhum canal neste plano.';
-    page.appendChild(p);
-  } else {
-    items.forEach((txt, idx)=>{
-      const row = document.createElement('div');
-      row.className = 'channel-row';
-      const left = document.createElement('div');
-      left.textContent = txt.split(/\s{2,}/)[0] || txt;
-      const right = document.createElement('div');
-      right.textContent = '';
-      row.appendChild(left);
-      row.appendChild(right);
-      page.appendChild(row);
-    });
-  }
+  page.appendChild(colContainer);
 
   const opt = {
-    margin:       [10,10,10,10],
-    filename:     `${planName.replace(/\s+/g,'_')}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    margin: [0,0,0,0],
+    filename: `${planName.replace(/\s+/g,'_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'px', format: [794,1122], orientation: 'portrait' }
   };
 
   html2pdf().set(opt).from(page).save();
 }
 
 /* =========================
-   DB LISTENER (Realtime)
+   DB LISTENER
    ========================= */
 function listenCanais(){
-  db.ref('canais').on('value', snap=>{
-    canaisData = snap.val() || {};
+  db.ref('canais').on('value',snap=>{
+    canaisData = snap.val()||{};
     renderComparativo();
     renderPlanLists();
   });
 }
 
 /* =========================
-   AUTENTICAÇÃO (simples)
+   AUTH
    ========================= */
-loginForm.addEventListener('submit', (e)=>{
+loginForm.addEventListener('submit',e=>{
   e.preventDefault();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  auth.signInWithEmailAndPassword(email, password)
-    .then(u=>{
-      // handled by onAuthStateChanged
-    })
-    .catch(err=> alert('Erro ao logar: '+err.message));
+  auth.signInWithEmailAndPassword(email.value,password.value).catch(err=>alert(err.message));
 });
-
 auth.onAuthStateChanged(u=>{
-  if (u){
-    currentUserEmail = (u.email||'').toLowerCase();
-    loginCard.style.display = 'none';
-    app.style.display = 'block';
-    logoutBtn.style.display = 'inline-block';
+  if(u){
+    currentUserEmail = u.email.toLowerCase();
+    loginCard.style.display="none"; app.style.display="block"; logoutBtn.style.display="inline-block";
     listenCanais();
   } else {
-    currentUserEmail = null;
-    loginCard.style.display = 'block';
-    app.style.display = 'none';
-    logoutBtn.style.display = 'none';
+    currentUserEmail=null;
+    loginCard.style.display="block"; app.style.display="none"; logoutBtn.style.display="none";
   }
 });
+logoutBtn.onclick=()=>auth.signOut();
 
-logoutBtn.addEventListener('click', ()=>{
-  auth.signOut();
-});
-
-/* =========================
-   EXPORT BOTÕES
-   ========================= */
-document.getElementById('exportFibraPlay').addEventListener('click', ()=> exportPlanToPDF('Fibra Play', fibraPlayList));
-document.getElementById('exportBasico').addEventListener('click', ()=> exportPlanToPDF('Fibra Play Básico', basicoList));
-document.getElementById('exportPremium').addEventListener('click', ()=> exportPlanToPDF('Fibra Play Premium', premiumList));
-
-/* =========================
-   Inicial: se quiser leitura anônima, pode ativar listenCanais() aqui
-   ========================= */
-// listenCanais(); // opcional: se quiser que funcione sem login (remoção de restrição para visualização)
+document.getElementById('exportFibraPlay').onclick=()=>exportPlanToPDF('Fibra Play',fibraPlayList);
+document.getElementById('exportBasico').onclick=()=>exportPlanToPDF('Fibra Play Básico',basicoList);
+document.getElementById('exportPremium').onclick=()=>exportPlanToPDF('Fibra Play Premium',premiumList);
 </script>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
