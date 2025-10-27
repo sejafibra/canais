@@ -33,7 +33,6 @@
     .manutencao { background: #fff7c2 !important; }
     .small-muted { color:var(--muted); font-size:0.9rem; }
 
-    /* A4 fixo em pixels (96dpi -> 794x1122px) */
     .a4page {
       width: 794px;
       height: 1122px;
@@ -44,6 +43,18 @@
       font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     }
     .a4-title { font-size:18px; font-weight:600; margin-bottom:6px; }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    .legend-line { margin-top: 8px; font-size: 12px; line-height: 1.4; }
+    .legend-dot { display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:8px; vertical-align:middle; }
   </style>
 </head>
 <body>
@@ -99,7 +110,12 @@
             <!-- Comparativo -->
             <div class="tab-pane fade show active" id="comparativo">
               <div class="card">
-                <div class="card-header"><h5 class="mb-0">Comparativo de Canais</h5></div>
+                <div class="card-header d-flex align-items-center">
+                  <h5 class="mb-0">Comparativo de Pacotes</h5>
+                  <div class="ms-auto">
+                    <button id="exportComparativo" class="btn btn-outline-primary btn-sm me-2"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button>
+                  </div>
+                </div>
                 <div class="card-body">
                   <div class="table-responsive">
                     <table class="table table-hover" id="comparativoTable">
@@ -193,10 +209,10 @@ const premiumList = document.getElementById('premiumList');
 const logoutBtn = document.getElementById('logoutBtn');
 
 function safeBool(v){ return v===true || v==='true' || v===1 || v==='1'; }
-function formatNum(n){ return n===undefined || n===null ? '' : String(n); }
+function formatNum(n){ return n===undefined || n===null ? '' : String(n).padStart(3,'0'); }
 
 /* =========================
-   RENDER COM PLANOS EDITÁVEIS
+   RENDERIZAÇÃO COMPARATIVO
    ========================= */
 function renderComparativo(){
   comparativoBody.innerHTML = '';
@@ -250,7 +266,7 @@ function renderComparativo(){
 }
 
 /* =========================
-   TOGGLE PLAN
+   TOGGLE PLANOS
    ========================= */
 function togglePlan(id, plan, newValue){
   if(!currentUserEmail) return alert("Faça login");
@@ -259,7 +275,7 @@ function togglePlan(id, plan, newValue){
 }
 
 /* =========================
-   LISTAS
+   LISTAS INDIVIDUAIS
    ========================= */
 function renderPlanLists(){
   fibraPlayList.innerHTML = basicoList.innerHTML = premiumList.innerHTML = '';
@@ -268,7 +284,7 @@ function renderPlanLists(){
     const line = document.createElement('div');
     line.className = 'list-group-item d-flex justify-content-between align-items-center';
     if(safeBool(c.manutencao)) line.classList.add('manutencao');
-    line.innerHTML = `<div style="width:100%"><strong>${c.numero||''}</strong> - ${c.nome||''}</div>`;
+    line.innerHTML = `<div style="width:100%"><strong>${formatNum(c.numero)}</strong> - ${c.nome||''}</div>`;
     if(safeBool(c.fibraPlay)) fibraPlayList.appendChild(line.cloneNode(true));
     if(safeBool(c.fibraPlayBasico)) basicoList.appendChild(line.cloneNode(true));
     if(safeBool(c.fibraPlayPremium)) premiumList.appendChild(line.cloneNode(true));
@@ -286,12 +302,11 @@ function toggleManutencao(id){
 }
 
 /* =========================
-   EXPORT PDF
+   EXPORT PDF PLANOS
    ========================= */
 function exportPlanToPDF(planName, containerElement){
   const page = document.createElement('div');
   page.className = 'a4page';
-
   const logo = document.createElement('img');
   logo.src = "https://sejafibra.net/wp-content/uploads/2023/06/logonovofibra.png";
   logo.style.height = "40px";
@@ -310,7 +325,6 @@ function exportPlanToPDF(planName, containerElement){
   dateLine.style.textAlign = "center";
   dateLine.textContent = 'Gerado em: ' + new Date().toLocaleString('pt-BR');
   page.appendChild(dateLine);
-
   page.appendChild(document.createElement('hr'));
 
   const colContainer = document.createElement('div');
@@ -330,7 +344,6 @@ function exportPlanToPDF(planName, containerElement){
     div.style.marginBottom = "2px";
     colContainer.appendChild(div);
   });
-
   page.appendChild(colContainer);
 
   const opt = {
@@ -345,38 +358,151 @@ function exportPlanToPDF(planName, containerElement){
 }
 
 /* =========================
-   DB LISTENER
+   EXPORT PDF COMPARATIVO
+   ========================= */
+function exportComparativoPDF(){
+  const page = document.createElement('div');
+  page.className = 'a4page';
+  const logo = document.createElement('img');
+  logo.src = "https://sejafibra.net/wp-content/uploads/2023/06/logonovofibra.png";
+  logo.style.height = "40px";
+  logo.style.display = "block";
+  logo.style.margin = "0 auto 10px auto";
+  page.appendChild(logo);
+
+  const title = document.createElement('div');
+  title.className = 'a4-title';
+  title.style.textAlign = "center";
+  title.textContent = `Comparativo de Pacotes`;
+  page.appendChild(title);
+
+  const dateLine = document.createElement('div');
+  dateLine.className = 'small-muted';
+  dateLine.style.textAlign = "center";
+  dateLine.textContent = 'Gerado em: ' + new Date().toLocaleString('pt-BR');
+  page.appendChild(dateLine);
+  page.appendChild(document.createElement('hr'));
+
+  const colContainer = document.createElement('div');
+  colContainer.style.width = "680px";
+  colContainer.style.margin = "0 auto";
+  colContainer.style.columnCount = 4;
+  colContainer.style.columnGap = "20px";
+  colContainer.style.fontSize = "10px";
+  colContainer.style.lineHeight = "1.2";
+  colContainer.style.textAlign = "left";
+
+  const rows = Array.from(document.querySelectorAll('#comparativoBody tr'));
+  if(rows.length === 0){
+    const arr = Object.entries(canaisData).map(([id,c])=>({...c})).sort((a,b)=>(parseInt(a.numero)||0)-(parseInt(b.numero)||0));
+    arr.forEach(c => colContainer.appendChild(formatComparativoLine(c)));
+  } else {
+    rows.forEach(r=>{
+      const tds = r.querySelectorAll('td');
+      const numero = (tds[0]?.innerText.trim()) || '';
+      const nome = (tds[1]?.innerText.trim()) || '';
+      const cortesia = tds[2]?.innerText.includes('✔');
+      const basico = tds[3]?.innerText.includes('✔');
+      const premium = tds[4]?.innerText.includes('✔');
+      colContainer.appendChild(formatComparativoLine({numero,nome,fibraPlay:cortesia,fibraPlayBasico:basico,fibraPlayPremium:premium}));
+    });
+  }
+  page.appendChild(colContainer);
+
+  const hr = document.createElement('hr');
+  hr.style.marginTop = "12px";
+  page.appendChild(hr);
+
+  const legend = document.createElement('div');
+  legend.style.width = "680px";
+  legend.style.margin = "0 auto";
+  legend.style.fontSize = "12px";
+
+  const l1 = document.createElement('div');
+  l1.className = 'legend-line';
+  l1.innerHTML = `<span class="legend-dot" style="background:#0d6efd"></span> Fibra Play Cortesia`;
+  legend.appendChild(l1);
+
+  const l2 = document.createElement('div');
+  l2.className = 'legend-line';
+  l2.innerHTML = `<span class="legend-dot" style="background:#ff7a00"></span> Fibra Play Básico`;
+  legend.appendChild(l2);
+
+  const l3 = document.createElement('div');
+  l3.className = 'legend-line';
+  l3.innerHTML = `<span class="legend-dot" style="background:#343a40"></span> Fibra Play Premium`;
+  legend.appendChild(l3);
+
+  page.appendChild(legend);
+
+  const opt = {
+    margin: [0,0,0,0],
+    filename: `Comparativo_de_Canais.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'px', format: [794,1122], orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(page).save();
+
+  function formatComparativoLine(c){
+    const div = document.createElement('div');
+    div.style.breakInside = "avoid";
+    div.style.marginBottom = "4px";
+    const num = (c.numero || '').toString().padStart(3,'0');
+    const nome = c.nome || '';
+
+    const cortesia = !!c.fibraPlay;
+    const basico = !!c.fibraPlayBasico;
+    const premium = !!c.fibraPlayPremium;
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = `${num} - ${nome}`;
+    div.appendChild(textSpan);
+
+    if(cortesia) div.appendChild(createDot('#0d6efd'));
+    if(basico) div.appendChild(createDot('#ff7a00'));
+    if(premium) div.appendChild(createDot('#343a40'));
+    if(!cortesia && !basico && !premium) div.appendChild(createDot('#ccc'));
+
+    return div;
+  }
+  function createDot(color){
+    const dot=document.createElement('span');
+    dot.className='dot';
+    dot.style.background=color;
+    return dot;
+  }
+}
+
+/* =========================
+   DB E AUTH
    ========================= */
 function listenCanais(){
   db.ref('canais').on('value',snap=>{
-    canaisData = snap.val()||{};
+    canaisData=snap.val()||{};
     renderComparativo();
     renderPlanLists();
   });
 }
-
-/* =========================
-   AUTH
-   ========================= */
 loginForm.addEventListener('submit',e=>{
   e.preventDefault();
   auth.signInWithEmailAndPassword(email.value,password.value).catch(err=>alert(err.message));
 });
 auth.onAuthStateChanged(u=>{
   if(u){
-    currentUserEmail = u.email.toLowerCase();
-    loginCard.style.display="none"; app.style.display="block"; logoutBtn.style.display="inline-block";
+    currentUserEmail=u.email.toLowerCase();
+    loginCard.style.display="none";app.style.display="block";logoutBtn.style.display="inline-block";
     listenCanais();
-  } else {
+  }else{
     currentUserEmail=null;
-    loginCard.style.display="block"; app.style.display="none"; logoutBtn.style.display="none";
+    loginCard.style.display="block";app.style.display="none";logoutBtn.style.display="none";
   }
 });
 logoutBtn.onclick=()=>auth.signOut();
-
 document.getElementById('exportFibraPlay').onclick=()=>exportPlanToPDF('Fibra Play',fibraPlayList);
 document.getElementById('exportBasico').onclick=()=>exportPlanToPDF('Fibra Play Básico',basicoList);
 document.getElementById('exportPremium').onclick=()=>exportPlanToPDF('Fibra Play Premium',premiumList);
+document.getElementById('exportComparativo').onclick=()=>exportComparativoPDF();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
