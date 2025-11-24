@@ -104,6 +104,7 @@
             <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#fibraplay">Fibra Play</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#basico">Fibra Play Básico</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#premium">Fibra Play Premium</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#plus">Fibra Play Plus</button></li>
           </ul>
 
           <div class="tab-content">
@@ -126,6 +127,8 @@
                           <th>Fibra Play Cortesia</th>
                           <th>Fibra Play Básico</th>
                           <th>Fibra Play Premium</th>
+                          <th>Fibra Play Plus</th>
+
                           <th>Status</th>
                         </tr>
                       </thead>
@@ -173,6 +176,21 @@
       </div>
     </div>
 
+<!-- Plus -->
+            <div class="tab-pane fade" id="plus">
+              <div class="card">
+                <div class="card-header d-flex align-items-center">
+                  <h5 class="mb-0">Fibra Play Plus</h5>
+                  <div class="ms-auto"><button id="exportPlus" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf"></i> Exportar em PDF</button></div>
+                </div>
+                <div class="card-body"><div id="plusList" class="list-group"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row mt-3 mb-5">
       <div class="col-md-10 text-center small-muted"><small>No caso de inconsistências, informe no grupo Headend</small></div>
     </div>
@@ -206,6 +224,7 @@ const comparativoBody = document.getElementById('comparativoBody');
 const fibraPlayList = document.getElementById('fibraPlayList');
 const basicoList = document.getElementById('basicoList');
 const premiumList = document.getElementById('premiumList');
+const plusList = document.getElementById('plusList');
 const logoutBtn = document.getElementById('logoutBtn');
 
 function safeBool(v){ return v===true || v==='true' || v===1 || v==='1'; }
@@ -228,7 +247,7 @@ function renderComparativo(){
       <td>${formatNum(c.numero)}</td>
       <td><strong>${c.nome||''}</strong></td>`;
 
-    ["fibraPlay","fibraPlayBasico","fibraPlayPremium"].forEach(plan=>{
+    ["fibraPlay","fibraPlayBasico","fibraPlayPremium", "fibraPlayPlus"].forEach(plan=>{
       const td = document.createElement('td');
       const val = safeBool(c[plan]);
       const span = document.createElement('span');
@@ -278,7 +297,7 @@ function togglePlan(id, plan, newValue){
    LISTAS INDIVIDUAIS
    ========================= */
 function renderPlanLists(){
-  fibraPlayList.innerHTML = basicoList.innerHTML = premiumList.innerHTML = '';
+  fibraPlayList.innerHTML = basicoList.innerHTML = premiumList.innerHTML = plusList.innerHTML ='';
   const arr = Object.entries(canaisData).map(([id,c])=>({...c})).sort((a,b)=>(parseInt(a.numero)||0)-(parseInt(b.numero)||0));
   arr.forEach(c=>{
     const line = document.createElement('div');
@@ -288,6 +307,7 @@ function renderPlanLists(){
     if(safeBool(c.fibraPlay)) fibraPlayList.appendChild(line.cloneNode(true));
     if(safeBool(c.fibraPlayBasico)) basicoList.appendChild(line.cloneNode(true));
     if(safeBool(c.fibraPlayPremium)) premiumList.appendChild(line.cloneNode(true));
+if(safeBool(c.fibraPlayPlus)) plusList.appendChild(line.cloneNode(true));
   });
 }
 
@@ -404,7 +424,8 @@ function exportComparativoPDF(){
       const cortesia = tds[2]?.innerText.includes('✔');
       const basico = tds[3]?.innerText.includes('✔');
       const premium = tds[4]?.innerText.includes('✔');
-      colContainer.appendChild(formatComparativoLine({numero,nome,fibraPlay:cortesia,fibraPlayBasico:basico,fibraPlayPremium:premium}));
+      const plus = tds[5]?.innerText.includes('✔');
+      colContainer.appendChild(formatComparativoLine({numero,nome,fibraPlay:cortesia,fibraPlayBasico:basico,fibraPlayPremium:premium,fibraPlayPlus:plus}));
     });
   }
   page.appendChild(colContainer);
@@ -433,6 +454,11 @@ function exportComparativoPDF(){
   l3.innerHTML = `<span class="legend-dot" style="background:#343a40"></span> Fibra Play Premium`;
   legend.appendChild(l3);
 
+  const l4 = document.createElement('div');
+  l4.className = 'legend-line';
+  l4.innerHTML = `<span class="legend-dot" style="background:#393a80"></span> Fibra Play Plus`;
+  legend.appendChild(l4);
+
   page.appendChild(legend);
 
   const opt = {
@@ -454,6 +480,7 @@ function exportComparativoPDF(){
     const cortesia = !!c.fibraPlay;
     const basico = !!c.fibraPlayBasico;
     const premium = !!c.fibraPlayPremium;
+    const plus = !!c.fibraPlayPlus;
 
     const textSpan = document.createElement('span');
     textSpan.textContent = `${num} - ${nome}`;
@@ -462,7 +489,8 @@ function exportComparativoPDF(){
     if(cortesia) div.appendChild(createDot('#0d6efd'));
     if(basico) div.appendChild(createDot('#ff7a00'));
     if(premium) div.appendChild(createDot('#343a40'));
-    if(!cortesia && !basico && !premium) div.appendChild(createDot('#ccc'));
+    if(plus) div.appendChild(createDot('#393a80'));
+    if(!cortesia && !basico && !premium && !plus) div.appendChild(createDot('#ccc'));
 
     return div;
   }
@@ -502,6 +530,7 @@ logoutBtn.onclick=()=>auth.signOut();
 document.getElementById('exportFibraPlay').onclick=()=>exportPlanToPDF('Fibra Play',fibraPlayList);
 document.getElementById('exportBasico').onclick=()=>exportPlanToPDF('Fibra Play Básico',basicoList);
 document.getElementById('exportPremium').onclick=()=>exportPlanToPDF('Fibra Play Premium',premiumList);
+document.getElementById('exportPremium').onclick=()=>exportPlanToPDF('Fibra Play Plus',plusList);
 document.getElementById('exportComparativo').onclick=()=>exportComparativoPDF();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
